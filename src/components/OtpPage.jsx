@@ -32,7 +32,7 @@ const OtpPage = () => {
         navigate('/login');
       }, 2000);
     } else {
-      setError('Invalid OTP code. Try 1234 for demo purposes.');
+      setError('Invalid OTP code');
     }
   };
 
