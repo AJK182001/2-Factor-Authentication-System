@@ -7,6 +7,13 @@ const OtpPage = () => {
   const [success, setSuccess] = useState('');
   const navigate = useNavigate();
 
+  const handleOtpChange = (e) => {
+    const value = e.target.value;
+    // Only allow numeric input (0-9)
+    const numericValue = value.replace(/[^0-9]/g, '');
+    setOtp(numericValue);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     
@@ -16,8 +23,8 @@ const OtpPage = () => {
       return;
     }
 
-    if (otp.length < 4) {
-      setError('OTP code must be at least 4 characters');
+    if (otp.length !== 6) {
+      setError('OTP code must be exactly 6 digits');
       return;
     }
 
@@ -25,7 +32,7 @@ const OtpPage = () => {
     setError('');
     
     // Simulate OTP validation (static check)
-    if (otp === '1234') {
+    if (otp === '123456') {
       setSuccess('OTP verified successfully!');
       // In a real app, you might navigate to a dashboard or home page
       setTimeout(() => {
@@ -50,8 +57,8 @@ const OtpPage = () => {
             id="otp"
             className="form-input"
             value={otp}
-            onChange={(e) => setOtp(e.target.value)}
-            placeholder="Enter your OTP code"
+            onChange={handleOtpChange}
+            placeholder="Enter 6-digit OTP code"
             maxLength="6"
           />
         </div>
@@ -70,7 +77,7 @@ const OtpPage = () => {
       </form>
       
       <div className="demo-hint">
-        <p>For Testing : Use "1234" as the OTP code</p>
+        <p>For Testing : Use "123456" as the OTP code</p>
       </div>
     </div>
   );
