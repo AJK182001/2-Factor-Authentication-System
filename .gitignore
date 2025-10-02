@@ -1,2 +1,5 @@
 #environment files
 .env
+# production
+/build
+.cache/
