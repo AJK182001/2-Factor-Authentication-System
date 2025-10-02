@@ -2,4 +2,4 @@
 .env
 # production
 /build
-.cache/
+/.cache
