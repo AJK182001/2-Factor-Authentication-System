@@ -29,14 +29,15 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="container">
-      <h1>Login</h1>
+    <div className="auth-card">
+      <h1 className="auth-title">Login</h1>
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label htmlFor="username">Username:</label>
+          <label htmlFor="username" className="form-label">Username</label>
           <input
             type="text"
             id="username"
+            className="form-input"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             placeholder="Enter your username"
@@ -44,19 +45,20 @@ const LoginPage = () => {
         </div>
         
         <div className="form-group">
-          <label htmlFor="password">Password:</label>
+          <label htmlFor="password" className="form-label">Password</label>
           <input
             type="password"
             id="password"
+            className="form-input"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Enter your password"
           />
         </div>
         
-        {error && <div className="error">{error}</div>}
+        {error && <div className="message message-error">{error}</div>}
         
-        <button type="submit">Login</button>
+        <button type="submit" className="btn btn-primary">Login</button>
       </form>
     </div>
   );

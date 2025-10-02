@@ -41,14 +41,14 @@ const OtpPage = () => {
   };
 
   return (
-    <div className="container">
-      <h1>Enter OTP Code</h1>
+    <div className="auth-card">
+      <h1 className="auth-title">One Time Password</h1>
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label htmlFor="otp">One-Time Password:</label>
           <input
             type="text"
             id="otp"
+            className="form-input"
             value={otp}
             onChange={(e) => setOtp(e.target.value)}
             placeholder="Enter your OTP code"
@@ -56,21 +56,21 @@ const OtpPage = () => {
           />
         </div>
         
-        {error && <div className="error">{error}</div>}
-        {success && <div className="success">{success}</div>}
+        {error && <div className="message message-error">{error}</div>}
+        {success && <div className="message message-success">{success}</div>}
         
-        <button type="submit">Submit OTP</button>
+        <button type="submit" className="btn btn-primary">Submit OTP</button>
         <button 
           type="button" 
           onClick={handleBackToLogin}
-          style={{ marginTop: '0.5rem', backgroundColor: '#6c757d' }}
+          className="btn btn-secondary"
         >
           Back to Login
         </button>
       </form>
       
-      <div style={{ marginTop: '1rem', fontSize: '0.875rem', color: '#666', textAlign: 'center' }}>
-        <p>Demo: Use "1234" as the OTP code</p>
+      <div className="demo-hint">
+        <p>For Testing : Use "1234" as the OTP code</p>
       </div>
     </div>
   );
