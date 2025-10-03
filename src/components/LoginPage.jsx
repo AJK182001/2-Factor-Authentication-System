@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from './firebase'; // adjust path to your firebase.js
 
 const LoginPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     // Basic validation
@@ -21,11 +24,35 @@ const LoginPage = () => {
       return;
     }
 
-    // Clear any previous errors
-    setError('');
-    
-    // Navigate to OTP page (no backend validation)
-    navigate('/otp');
+    try {
+      // Query Firestore users collection
+      const usersRef = collection(db, 'users');
+      const q = query(
+        usersRef,
+        where('email', '==', username),
+        where('password', '==', password)
+      );
+
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        // Clear errors and show success
+        setError('');
+        setSuccess('Verification successful! Redirecting to OTP...');
+        
+        // Redirect to OTP after short delay
+        setTimeout(() => {
+          navigate('/otp');
+        }, 1500);
+      } else {
+        setError('Invalid username or password');
+        setSuccess('');
+      }
+    } catch (err) {
+      console.error('Error checking login:', err);
+      setError('Something went wrong. Please try again.');
+      setSuccess('');
+    }
   };
 
   return (
@@ -57,6 +84,7 @@ const LoginPage = () => {
         </div>
         
         {error && <div className="message message-error">{error}</div>}
+        {success && <div className="message message-success">{success}</div>}
         
         <button type="submit" className="btn btn-primary">Login</button>
       </form>
