@@ -12,15 +12,25 @@ const LoginPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Basic validation
     if (!username.trim()) {
       setError('Username is required');
       return;
     }
-    
+
     if (!password.trim()) {
       setError('Password is required');
+      return;
+    }
+
+    // Check for admin credentials first
+    if (username === 'admin' && password === 'admin1234') {
+      setError('');
+      setSuccess('Admin login successful! Redirecting to Admin Panel...');
+      setTimeout(() => {
+        navigate('/admin');
+      }, 1200);
       return;
     }
 
