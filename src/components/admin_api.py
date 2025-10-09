@@ -10,10 +10,7 @@ CORS(app)
 # Initialize Firebase Admin SDK
 # Set environment variable GOOGLE_APPLICATION_CREDENTIALS to your service account JSON path,
 # or place serviceAccount.json in project root and it will be used as fallback.
-cred_path = os.environ.get(
-    "GOOGLE_APPLICATION_CREDENTIALS",
-    os.path.join(os.getcwd(), "service.json")
-)
+cred_path = "D:\MS\FIT5163\project\\2-Factor-Authentication-System\service.json"
 
 if not firebase_admin._apps:
     cred = credentials.Certificate(cred_path)
