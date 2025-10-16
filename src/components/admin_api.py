@@ -5,13 +5,15 @@ from firebase_admin import credentials, firestore
 import random
 import time
 import string
+import json
+import bcrypt
 app = Flask(__name__)
 CORS(app)
 
 # Initialize Firebase Admin SDK
 # Set environment variable GOOGLE_APPLICATION_CREDENTIALS to your service account JSON path,
 # or place serviceAccount.json in project root and it will be used as fallback.
-cred_path = "D:\MS\FIT5163\project\\2-Factor-Authentication-System\service.json"
+cred_path = "C:\\Users\\anton\\OneDrive\\Desktop\\Crypto 2FA\\login\\2-Factor-Authentication-System\\service.json"
 otp_cache = {}
 if not firebase_admin._apps:
     cred = credentials.Certificate(cred_path)
@@ -89,6 +91,12 @@ def update_user(user_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+with open('config.json') as f:
+    admin_config = json.load(f)
+    
+    ADMIN_EMAIL = admin_config['email']
+    ADMIN_PASSWORD_HASH =admin_config['passwordHash'].encode('utf-8')
+
 @app.route('/check_login', methods=['POST'])
 def check_login():
         data = request.get_json()
@@ -98,8 +106,9 @@ def check_login():
         if not email or not password:
             return jsonify({"success": False, "error": "Missing email or password"}), 400
 
+
         # Admin shortcut
-        if email == "admin" and password == "admin1234":
+        if email == ADMIN_EMAIL and bcrypt.checkpw(password.encode('utf-8'), ADMIN_PASSWORD_HASH):
             return jsonify({"success": True, "role": "admin"})
 
         # Query Firestore
