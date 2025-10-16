@@ -13,7 +13,7 @@ CORS(app)
 # Initialize Firebase Admin SDK
 # Set environment variable GOOGLE_APPLICATION_CREDENTIALS to your service account JSON path,
 # or place serviceAccount.json in project root and it will be used as fallback.
-cred_path = "C:\\Users\\anton\\OneDrive\\Desktop\\Crypto 2FA\\login\\2-Factor-Authentication-System\\service.json"
+cred_path = "D:\MS\FIT5163\project\\2-Factor-Authentication-System\service.json"
 otp_cache = {}
 if not firebase_admin._apps:
     cred = credentials.Certificate(cred_path)
@@ -32,6 +32,7 @@ def list_users():
             data = d.to_dict() or {}
             data["id"] = d.id
             users.append(data)
+        print("Fetched users:", users)
         return jsonify(users), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -42,10 +43,11 @@ def create_user():
     data = request.json or {}
     email = data.get("email")
     password = data.get("password")
+    hashedpassword = bcrypt.hashpw(password.encode('utf-8'),bcrypt.gensalt())
     if not email or not password:
         return jsonify({"error": "Email and password required"}), 400
     try:
-        doc_ref = users_col.add({"email": email, "password": password})
+        doc_ref = users_col.add({"email": email, "password": hashedpassword.decode('utf-8')})
         # users_col.add returns a tuple (DocumentReference, write_result) in firebase-admin python
         # but sometimes directly returns DocumentReference; handle both
         doc_id = None
@@ -91,35 +93,32 @@ def update_user(user_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-with open('config.json') as f:
-    admin_config = json.load(f)
+#with open('config.json') as f:
+#    admin_config = json.load(f)
     
-    ADMIN_EMAIL = admin_config['email']
-    ADMIN_PASSWORD_HASH =admin_config['passwordHash'].encode('utf-8')
+#    ADMIN_EMAIL = admin_config['email']
+#    ADMIN_PASSWORD_HASH =admin_config['passwordHash'].encode('utf-8')
 
 @app.route('/check_login', methods=['POST'])
 def check_login():
         data = request.get_json()
         email = data.get('email')
-        password = data.get('password')
+        password = data.get('password').encode('utf-8')
 
         if not email or not password:
             return jsonify({"success": False, "error": "Missing email or password"}), 400
 
-
-        # Admin shortcut
-        if email == ADMIN_EMAIL and bcrypt.checkpw(password.encode('utf-8'), ADMIN_PASSWORD_HASH):
-            return jsonify({"success": True, "role": "admin"})
-
         # Query Firestore
         users_ref = db.collection('users')
-        query_ref = users_ref.where('email', '==', email).where('password', '==', password).stream()
+        query_ref = users_ref.where('email', '==', email).stream()
 
         matched_user = None
         for doc in query_ref:
             matched_user = {"id": doc.id, **doc.to_dict()}  # merge id and data
-
-        if matched_user:
+        if matched_user["id"] == "admin" and bcrypt.checkpw(password,matched_user['password'].encode('utf-8')):
+            return jsonify({"success":True, "role":"admin"})
+        if bcrypt.checkpw(password,matched_user['password'].encode('utf-8')):
+            print("password verified")
             return jsonify({
                 "success": True,
                 "role": "user",
