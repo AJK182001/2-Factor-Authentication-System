@@ -99,6 +99,15 @@ body {
   background-color: #3498db;
   color: #ffffff;
 }
+.btn-generate{
+  background-color:#2980b9;
+  color: #ffffff;
+}
+.btn-primary:hover {
+  background-color: #07ffd1;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
 
 .btn-primary:hover {
   background-color: #2980b9;

@@ -1,9 +1,10 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import os
 import firebase_admin
 from firebase_admin import credentials, firestore
-
+import random
+import time
+import string
 app = Flask(__name__)
 CORS(app)
 
@@ -11,7 +12,7 @@ CORS(app)
 # Set environment variable GOOGLE_APPLICATION_CREDENTIALS to your service account JSON path,
 # or place serviceAccount.json in project root and it will be used as fallback.
 cred_path = "D:\MS\FIT5163\project\\2-Factor-Authentication-System\service.json"
-
+otp_cache = {}
 if not firebase_admin._apps:
     cred = credentials.Certificate(cred_path)
     firebase_admin.initialize_app(cred)
@@ -88,6 +89,118 @@ def update_user(user_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/check_login', methods=['POST'])
+def check_login():
+        data = request.get_json()
+        email = data.get('email')
+        password = data.get('password')
+
+        if not email or not password:
+            return jsonify({"success": False, "error": "Missing email or password"}), 400
+
+        # Admin shortcut
+        if email == "admin" and password == "admin1234":
+            return jsonify({"success": True, "role": "admin"})
+
+        # Query Firestore
+        users_ref = db.collection('users')
+        query_ref = users_ref.where('email', '==', email).where('password', '==', password).stream()
+
+        matched_user = None
+        for doc in query_ref:
+            matched_user = {"id": doc.id, **doc.to_dict()}  # merge id and data
+
+        if matched_user:
+            return jsonify({
+                "success": True,
+                "role": "user",
+                "user_id": matched_user["id"],
+                "email": matched_user.get("email")
+            })
+        else:
+            return jsonify({"success": False, "error": "Invalid credentials"}), 401
+def generate_random_otp():
+    return str(random.randint(100000, 999999))
+
+def generate_session_id():
+    return f"session_{int(time.time())}_{''.join(random.choices(string.ascii_lowercase + string.digits, k=8))}"
+@app.route('/generate_otp', methods=['POST'])
+def generate_otp():
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')  # Get user ID from frontend request
+
+        if not user_id:
+            return jsonify({'success': False, 'error': 'Missing user_id'}), 400
+        session_id = generate_session_id()
+        otp_code = generate_random_otp()
+        current_time = int(time.time() * 1000)
+        expires_at = current_time + 15000  # 15 seconds validity
+        user_ref = db.collection('users').document(user_id)
+        if not user_ref.get().exists:
+            return jsonify({'success': False, 'error': 'User not found'}), 404
+        user_ref.update({
+            'otp_code': otp_code,
+            'otp_createdAt': current_time,
+            'otp_expiresAt': expires_at,
+        })
+        return jsonify({
+            'success': True,
+            'sessionId': session_id,
+            'otp': otp_code
+        }), 200
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+@app.route('/verify_otp', methods=['POST'])
+def verify_otp():
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        otp_code = data.get('otp')
+
+        if not user_id or  not otp_code:
+            return jsonify({'success': False, 'error': 'Missing user_id, OTP, or session ID'}), 400
+
+        user_ref = db.collection('users').document(user_id)
+        user_doc = user_ref.get()
+
+        if not user_doc.exists:
+            return jsonify({'success': False, 'error': 'User not found'}), 404
+
+        user_data = user_doc.to_dict()
+        current_time = int(time.time() * 1000)
+
+        # ✅ Check if OTP exists in user document
+        if 'otp_code' not in user_data or 'otp_expiresAt' not in user_data:
+            return jsonify({'success': False, 'error': 'No OTP found for this user'}), 404
+
+        # ✅ Check if expired
+        if current_time > user_data['otp_expiresAt']:
+            # Optional: remove expired OTP fields
+            user_ref.update({
+                'otp_code': firestore.DELETE_FIELD,
+                'otp_createdAt': firestore.DELETE_FIELD,
+                'otp_expiresAt': firestore.DELETE_FIELD,
+                'session_id': firestore.DELETE_FIELD
+            })
+            return jsonify({'success': False, 'error': 'OTP expired'}), 400
+
+        # Match OTP and session_id
+        if otp_code == user_data['otp_code']:
+            # Clear OTP after successful verification
+            user_ref.update({
+                'otp_code': firestore.DELETE_FIELD,
+                'otp_createdAt': firestore.DELETE_FIELD,
+                'otp_expiresAt': firestore.DELETE_FIELD,
+                'session_id': firestore.DELETE_FIELD
+            })
+            return jsonify({'success': True, 'message': 'OTP verified successfully'}), 200
+        else:
+            return jsonify({'success': False, 'error': 'Invalid OTP'}), 400
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 if __name__ == "__main__":
     # Example run on Windows (PowerShell/CMD):

@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from './firebase'; // adjust path to your firebase.js
 
 const LoginPage = () => {
   const [username, setUsername] = useState('');
@@ -12,8 +10,9 @@ const LoginPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setSuccess('');
 
-    // Basic validation
     if (!username.trim()) {
       setError('Username is required');
       return;
@@ -24,44 +23,36 @@ const LoginPage = () => {
       return;
     }
 
-    // Check for admin credentials first
-    if (username === 'admin' && password === 'admin1234') {
-      setError('');
-      setSuccess('Admin login successful! Redirecting to Admin Panel...');
-      setTimeout(() => {
-        navigate('/admin');
-      }, 1200);
-      return;
-    }
-
     try {
-      // Query Firestore users collection
-      const usersRef = collection(db, 'users');
-      const q = query(
-        usersRef,
-        where('email', '==', username),
-        where('password', '==', password)
-      );
+      const response = await fetch('http://127.0.0.1:5000/check_login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: username,
+          password: password,
+        }),
+      });
 
-      const querySnapshot = await getDocs(q);
+      const data = await response.json();
 
-      if (!querySnapshot.empty) {
-        // Clear errors and show success
-        setError('');
-        setSuccess('Verification successful! Redirecting to OTP...');
-        
-        // Redirect to OTP after short delay
-        setTimeout(() => {
-          navigate('/otp');
-        }, 1500);
+      if (data.success) {
+        if (data.role === 'admin') {
+          setSuccess('Admin login successful! Redirecting...');
+          setTimeout(() => navigate('/admin'), 1200);
+        } else {
+          setSuccess('Verification successful! Redirecting to OTP...');
+          setTimeout(() =>{      
+            navigate('/otp',{state: {user_id: data.user_id, email: username}})
+              }, 1500);
+        }
       } else {
-        setError('Invalid username or password');
-        setSuccess('');
+        setError(data.error || 'Invalid username or password');
       }
     } catch (err) {
-      console.error('Error checking login:', err);
-      setError('Something went wrong. Please try again.');
-      setSuccess('');
+      console.error('Login error:', err);
+      setError('Server error. Please try again.');
     }
   };
 
@@ -80,7 +71,7 @@ const LoginPage = () => {
             placeholder="Enter your username"
           />
         </div>
-        
+
         <div className="form-group">
           <label htmlFor="password" className="form-label">Password</label>
           <input
@@ -92,10 +83,10 @@ const LoginPage = () => {
             placeholder="Enter your password"
           />
         </div>
-        
+
         {error && <div className="message message-error">{error}</div>}
         {success && <div className="message message-success">{success}</div>}
-        
+
         <button type="submit" className="btn btn-primary">Login</button>
       </form>
     </div>
