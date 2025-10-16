@@ -5,7 +5,6 @@ from firebase_admin import credentials, firestore
 import random
 import time
 import string
-import json
 import bcrypt
 app = Flask(__name__)
 CORS(app)
@@ -43,7 +42,7 @@ def create_user():
     data = request.json or {}
     email = data.get("email")
     password = data.get("password")
-    hashedpassword = bcrypt.hashpw(password.encode('utf-8'),bcrypt.gensalt())
+    hashedpassword = bcrypt.hashpw(password.encode('utf-8'),bcrypt.gensalt(10))
     if not email or not password:
         return jsonify({"error": "Email and password required"}), 400
     try:
@@ -132,30 +131,37 @@ def generate_random_otp():
 
 def generate_session_id():
     return f"session_{int(time.time())}_{''.join(random.choices(string.ascii_lowercase + string.digits, k=8))}"
+def hash_otp(otp,emailadd):
+    combined = f"{emailadd}:{otp}:{time.time()}".encode("utf-8")
+    hashed = bcrypt.hashpw(combined, bcrypt.gensalt())
+    numeric = int.from_bytes(hashed[:4], "big")
+    final_otp = str(numeric % 1000000).zfill(6)
+    return final_otp
 @app.route('/generate_otp', methods=['POST'])
 def generate_otp():
     try:
         data = request.get_json()
         user_id = data.get('user_id')  # Get user ID from frontend request
-
+        user_email = data.get('email')
         if not user_id:
             return jsonify({'success': False, 'error': 'Missing user_id'}), 400
         session_id = generate_session_id()
         otp_code = generate_random_otp()
+        hashed_otp = hash_otp(otp_code,user_email)
         current_time = int(time.time() * 1000)
         expires_at = current_time + 15000  # 15 seconds validity
         user_ref = db.collection('users').document(user_id)
         if not user_ref.get().exists:
             return jsonify({'success': False, 'error': 'User not found'}), 404
         user_ref.update({
-            'otp_code': otp_code,
+            'otp_code': hashed_otp,
             'otp_createdAt': current_time,
             'otp_expiresAt': expires_at,
         })
         return jsonify({
             'success': True,
             'sessionId': session_id,
-            'otp': otp_code
+            'otp': hashed_otp
         }), 200
 
     except Exception as e:
@@ -193,9 +199,8 @@ def verify_otp():
                 'session_id': firestore.DELETE_FIELD
             })
             return jsonify({'success': False, 'error': 'OTP expired'}), 400
-
         # Match OTP and session_id
-        if otp_code == user_data['otp_code']:
+        if otp_code == user_data["otp_code"]:
             # Clear OTP after successful verification
             user_ref.update({
                 'otp_code': firestore.DELETE_FIELD,
