@@ -27,7 +27,7 @@ const OtpPage = () => {
       const res = await fetch(`${API_BASE}/generate_otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id })
+        body: JSON.stringify({ user_id,email })
       });
 
       const data = await res.json();
