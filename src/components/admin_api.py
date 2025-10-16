@@ -12,7 +12,7 @@ CORS(app)
 # Initialize Firebase Admin SDK
 # Set environment variable GOOGLE_APPLICATION_CREDENTIALS to your service account JSON path,
 # or place serviceAccount.json in project root and it will be used as fallback.
-cred_path = "C:\\Users\\anton\\OneDrive\\Desktop\\Crypto 2FA\\login\\2-Factor-Authentication-System\\service.json"
+cred_path = "D:\MS\FIT5163\project\\2-Factor-Authentication-System\service.json"
 otp_cache = {}
 if not firebase_admin._apps:
     cred = credentials.Certificate(cred_path)
@@ -30,7 +30,10 @@ def list_users():
         for d in docs:
             data = d.to_dict() or {}
             data["id"] = d.id
-            users.append(data)
+            if data["id"] == "admin":
+                continue
+            else:
+                users.append(data)
         print("Fetched users:", users)
         return jsonify(users), 200
     except Exception as e:
