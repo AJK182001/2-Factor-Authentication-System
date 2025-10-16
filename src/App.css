@@ -183,3 +183,30 @@ body {
     font-size: 1.5rem;
   }
 }
+
+/* Button group styling for OTP page */
+.button-group {
+  display: flex;
+  gap: 1rem;
+  margin: 1.5rem 0;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.button-group .btn {
+  flex: 1;
+  min-width: 120px;
+  max-width: 200px;
+}
+
+@media (max-width: 480px) {
+  .button-group {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .button-group .btn {
+    width: 100%;
+    max-width: none;
+  }
+}

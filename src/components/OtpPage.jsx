@@ -176,8 +176,14 @@ const OtpPage = () => {
         
         {error && <div className="message message-error">{error}</div>}
         {success && <div className="message message-success">{success}</div>}
-        <button type="button" className="btn btn-generate" onClick={generateotp}>Generate OTP</button>
-        <button type="submit" className="btn btn-primary">Submit OTP</button>
+        
+        <div className="button-group">
+          <button type="button" className="btn btn-generate" onClick={generateotp}>
+            {isGenerating ? 'Generating...' : 'Generate OTP'}
+          </button>
+          <button type="submit" className="btn btn-primary">Submit OTP</button>
+        </div>
+        
         <button 
           type="button" 
           onClick={handleBackToLogin}
