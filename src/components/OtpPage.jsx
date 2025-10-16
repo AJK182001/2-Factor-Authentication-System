@@ -142,7 +142,7 @@ const OtpPage = () => {
       setSessionId(null);
       setGeneratedOtp(null); // if you have this state
       setTimeout(() => {
-        navigate('/login');
+        navigate('/game');
       }, 1500);
     } else {
       setError(data.error || 'Verification failed');

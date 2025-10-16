@@ -4,6 +4,7 @@ import LoginPage from './components/LoginPage';
 import OtpPage from './components/OtpPage';
 import './App.css';
 import AdminPage from './components/AdminPage';
+import Game from './components/Game';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/otp" element={<OtpPage />} />
           <Route path="/admin" element={<AdminPage />} />
+          <Route path="/game" element={<Game />} />
         </Routes>
       </div>
     </Router>

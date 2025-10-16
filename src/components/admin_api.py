@@ -12,7 +12,7 @@ CORS(app)
 # Initialize Firebase Admin SDK
 # Set environment variable GOOGLE_APPLICATION_CREDENTIALS to your service account JSON path,
 # or place serviceAccount.json in project root and it will be used as fallback.
-cred_path = "D:\MS\FIT5163\project\\2-Factor-Authentication-System\service.json"
+cred_path = "C:\\Users\\Admin\\Desktop\\project\\2-Factor-Authentication-System\\service.json"
 otp_cache = {}
 if not firebase_admin._apps:
     cred = credentials.Certificate(cred_path)
@@ -188,11 +188,11 @@ def verify_otp():
         user_data = user_doc.to_dict()
         current_time = int(time.time() * 1000)
 
-        # ✅ Check if OTP exists in user document
+        #  Check if OTP exists in user document
         if 'otp_code' not in user_data or 'otp_expiresAt' not in user_data:
             return jsonify({'success': False, 'error': 'No OTP found for this user'}), 404
 
-        # ✅ Check if expired
+        #  Check if expired
         if current_time > user_data['otp_expiresAt']:
             # Optional: remove expired OTP fields
             user_ref.update({
