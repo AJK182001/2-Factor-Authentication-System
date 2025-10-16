@@ -1,0 +1,117 @@
+/* Game container stays full screen */
+.game-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 100vh;
+  background-color: #f5f6fa; /* match login page */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding-top: 20px;
+}
+
+/* White card background like login page */
+.game-card {
+  background: #ffffff;
+  padding: 0.5rem 2rem 2rem 2rem; /* top right bottom left */
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  border: 1px solid rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 450px;
+  width: 90%;
+  box-sizing: border-box;
+}
+
+
+/* Title */
+h1 {
+  font-size: 2rem;
+  color: #2c3e50;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+/* Score and high score */
+.score-board {
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+  color: #34495e;
+}
+
+/* Game over message */
+.game-over {
+  font-size: 1.2rem;
+  color: #e74c3c;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+/* Board layout (keeps original working 20x20 logic) */
+.board {
+  display: grid;
+  grid-template-columns: repeat(20, 20px);
+  grid-template-rows: repeat(20, 20px);
+  background-color: #fdfdfd; /* light background */
+  border: 1px solid rgba(0,0,0,0.05);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+/* Cells */
+.cell {
+  width: 20px;
+  height: 20px;
+  border: 0.5px solid #e1e8ed; /* subtle grid lines */
+  box-sizing: border-box;
+}
+
+/* Snake */
+.snake {
+  background-color: #3498db; /* blue like login buttons */
+  border-radius: 50%;
+  transition: all 0.1s ease;
+}
+
+/* Food */
+.food {
+  background-color: #e74c3c; /* red food */
+  border-radius: 50%;
+  animation: pulse 0.6s infinite alternate;
+}
+
+@keyframes pulse {
+  from { transform: scale(1); }
+  to { transform: scale(1.2); }
+}
+
+/* Buttons */
+button.btn-primary {
+  background-color: #3498db; /* match login primary button */
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 5px;
+}
+
+button.btn-primary:hover {
+  background-color: #2980b9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+/* Speed selector */
+select {
+  margin-left: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #e1e8ed;
+  font-family: inherit;
+}
