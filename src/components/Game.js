@@ -1,31 +1,56 @@
+// =============================================================================
+// SNAKE GAME COMPONENT - PROTECTED APPLICATION
+// =============================================================================
+// This is the protected application that users access after successful 2FA
+// Features classic Snake gameplay with score tracking and logout functionality
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Game.css";
 import axios from "axios";
 
-const BOARD_SIZE = 14;
-const INITIAL_SNAKE = [{ x: 7, y: 7 }];
-const INITIAL_DIRECTION = { x: 0, y: -1 };
-const SPEEDS = { Easy: 300, Medium: 200, Hard: 100 };
+// Game configuration constants
+const BOARD_SIZE = 14;                                    // 14x14 game board
+const INITIAL_SNAKE = [{ x: 7, y: 7 }];                  // Starting snake position (center)
+const INITIAL_DIRECTION = { x: 0, y: -1 };               // Starting direction (up)
+const SPEEDS = { Easy: 300, Medium: 200, Hard: 100 };    // Game speed settings (ms)
 
+/**
+ * getRandomPosition Function
+ * Generates random coordinates for food placement
+ * Ensures food appears within board boundaries
+ */
 const getRandomPosition = () => ({
   x: Math.floor(Math.random() * BOARD_SIZE),
   y: Math.floor(Math.random() * BOARD_SIZE),
 });
 
+/**
+ * Game Component
+ * Main Snake game implementation with React hooks
+ * Handles game logic, user input, and score management
+ * Includes logout functionality to return to login
+ */
 const Game = () => {
-  const navigate = useNavigate();
-  const [snake, setSnake] = useState(INITIAL_SNAKE);
-  const [direction, setDirection] = useState(INITIAL_DIRECTION);
-  const [food, setFood] = useState(getRandomPosition());
-  const [score, setScore] = useState(0);
-  const [highScore, setHighScore] = useState(0);
-  const [gameOver, setGameOver] = useState(false);
-  const [speed, setSpeed] = useState(SPEEDS.Medium);
+  const navigate = useNavigate();                         // React Router navigation
+  const [snake, setSnake] = useState(INITIAL_SNAKE);     // Snake body segments
+  const [direction, setDirection] = useState(INITIAL_DIRECTION); // Current direction
+  const [food, setFood] = useState(getRandomPosition());  // Food position
+  const [score, setScore] = useState(0);                  // Current score
+  const [highScore, setHighScore] = useState(0);          // High score
+  const [gameOver, setGameOver] = useState(false);        // Game over state
+  const [speed, setSpeed] = useState(SPEEDS.Medium);      // Game speed
 
+  /**
+   * moveSnake Function
+   * Core game logic for snake movement
+   * Handles collision detection, food consumption, and score updates
+   * Ends game if snake hits walls or itself
+   */
   const moveSnake = () => {
     const newHead = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
 
+    // Check for collisions (walls or self)
     if (
       newHead.x < 0 || newHead.x >= BOARD_SIZE ||
       newHead.y < 0 || newHead.y >= BOARD_SIZE ||
@@ -36,16 +61,24 @@ const Game = () => {
       return;
     }
 
+    // Move snake by adding new head
     const newSnake = [newHead, ...snake];
+    
+    // Check if food is consumed
     if (newHead.x === food.x && newHead.y === food.y) {
-      setScore(prev => prev + 1);
-      setFood(getRandomPosition());
+      setScore(prev => prev + 1);           // Increase score
+      setFood(getRandomPosition());         // Generate new food
     } else {
-      newSnake.pop();
+      newSnake.pop();                       // Remove tail if no food consumed
     }
     setSnake(newSnake);
   };
 
+  /**
+   * updateHighScore Function
+   * Sends current score to backend for high score tracking
+   * Updates local high score state
+   */
   const updateHighScore = async () => {
     try {
       const res = await axios.post("http://127.0.0.1:5000/highscore", { score });
@@ -55,6 +88,7 @@ const Game = () => {
     }
   };
 
+  // Fetch high score on component mount
   useEffect(() => {
     const fetchHighScore = async () => {
       try {
@@ -65,12 +99,14 @@ const Game = () => {
     fetchHighScore();
   }, []);
 
+  // Game loop - moves snake at specified intervals
   useEffect(() => {
     if (gameOver) return;
     const interval = setInterval(moveSnake, speed);
     return () => clearInterval(interval);
   }, [snake, direction, speed, gameOver]);
 
+  // Keyboard input handling for snake direction
   useEffect(() => {
     const handleKey = (e) => {
       switch (e.key) {
@@ -85,6 +121,11 @@ const Game = () => {
     return () => window.removeEventListener("keydown", handleKey);
   }, [direction]);
 
+  /**
+   * restartGame Function
+   * Resets game to initial state
+   * Used when restart button is clicked
+   */
   const restartGame = () => {
     setSnake(INITIAL_SNAKE);
     setDirection(INITIAL_DIRECTION);
@@ -93,6 +134,11 @@ const Game = () => {
     setGameOver(false);
   };
 
+  /**
+   * handleLogout Function
+   * Returns user to login page
+   * Part of the 2FA system logout functionality
+   */
   const handleLogout = () => {
     navigate('/login');
   };

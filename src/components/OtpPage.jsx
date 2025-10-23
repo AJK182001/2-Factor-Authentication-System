@@ -1,16 +1,37 @@
+// =============================================================================
+// OTP VERIFICATION PAGE COMPONENT
+// =============================================================================
+// This component handles the second factor of authentication (2FA)
+// Features 6 individual input boxes for OTP entry with auto-navigation
+// Generates OTP popup window and verifies user input
+
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+
+/**
+ * OtpPage Component
+ * Handles OTP generation, display, and verification
+ * Features modern 6-box input design with auto-navigation
+ * Displays OTP in popup window with countdown timer
+ */
 const OtpPage = () => {
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { user_id, email } = location.state || {};
-  const [isGenerating, setIsGenerating] = useState(false); 
-  const [sessionId, setSessionId] = useState(null);
-  const [generatedOtp, setGeneratedOtp] = useState(null);
+  // State management for OTP input and verification
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);  // Array of 6 OTP digits
+  const [error, setError] = useState('');                    // Error messages
+  const [success, setSuccess] = useState('');                // Success messages
+  const navigate = useNavigate();                            // React Router navigation
+  const location = useLocation();                            // Access to route state
+  const { user_id, email } = location.state || {};          // User data from login
+  const [isGenerating, setIsGenerating] = useState(false);   // OTP generation loading state
+  const [sessionId, setSessionId] = useState(null);          // Session tracking
+  const [generatedOtp, setGeneratedOtp] = useState(null);    // Generated OTP for display
   
+  /**
+   * handleOtpChange Function
+   * Handles input changes for individual OTP boxes
+   * Only allows numeric input and auto-navigates to next box
+   * Prevents multiple characters in single input
+   */
   const handleOtpChange = (index, value) => {
     // Only allow numeric input (0-9)
     const numericValue = value.replace(/[^0-9]/g, '');
@@ -19,7 +40,7 @@ const OtpPage = () => {
       newOtp[index] = numericValue;
       setOtp(newOtp);
       
-      // Auto-focus next input
+      // Auto-focus next input when digit is entered
       if (numericValue && index < 5) {
         const nextInput = document.getElementById(`otp-${index + 1}`);
         if (nextInput) nextInput.focus();
@@ -27,6 +48,11 @@ const OtpPage = () => {
     }
   };
   
+  /**
+   * handleKeyDown Function
+   * Handles keyboard navigation between OTP input boxes
+   * Enables backspace to move to previous input when current is empty
+   */
   const handleKeyDown = (index, e) => {
     // Handle backspace to move to previous input
     if (e.key === 'Backspace' && !otp[index] && index > 0) {
@@ -36,12 +62,19 @@ const OtpPage = () => {
   };
   const API_BASE = "http://127.0.0.1:5000";
 
+  /**
+   * generateotp Function
+   * Generates a new OTP for the current user
+   * Creates popup window with OTP display and countdown timer
+   * Handles loading states and error management
+   */
   const generateotp = async() => {
     setIsGenerating(true);
     setError('');
     setSuccess('');
 
     try {
+      // Request OTP generation from backend
       const res = await fetch(`${API_BASE}/generate_otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -51,9 +84,11 @@ const OtpPage = () => {
       const data = await res.json();
       if (!data.success) throw new Error(data.error || 'Failed to generate OTP');
 
+      // Store OTP data for verification
       setGeneratedOtp(data.otp);
       setSessionId(data.sessionId);
 
+      // Create popup window to display OTP with countdown timer
       const otpWindow = window.open('', '_blank');
       if (otpWindow) {
         otpWindow.document.write(`
@@ -95,6 +130,7 @@ const OtpPage = () => {
                 <p>Expires in <span id="countdown">30</span> seconds</p>
               </div>
               <script>
+                // 30-second countdown timer
                 let timeLeft = 30;
                 const countdown = document.getElementById('countdown');
                 const interval = setInterval(() => {
