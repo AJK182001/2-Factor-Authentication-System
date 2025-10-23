@@ -7,7 +7,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-/**
+/*
  * LoginPage Component
  * Handles user authentication with username/password
  * Supports both admin and regular user login
@@ -21,7 +21,7 @@ const LoginPage = () => {
   const [success, setSuccess] = useState('');          // Success messages
   const navigate = useNavigate();                      // React Router navigation
 
-  /**
+  /*
    * handleSubmit Function
    * Processes user login form submission
    * Validates credentials with backend API
