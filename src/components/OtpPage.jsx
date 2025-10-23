@@ -92,10 +92,10 @@ const OtpPage = () => {
               <div class="otp-container">
                 <h1>Your One-Time Password</h1>
                 <div class="otp-code">${data.otp}</div>
-                <p>Expires in <span id="countdown">15</span> seconds</p>
+                <p>Expires in <span id="countdown">30</span> seconds</p>
               </div>
               <script>
-                let timeLeft = 15;
+                let timeLeft = 30;
                 const countdown = document.getElementById('countdown');
                 const interval = setInterval(() => {
                   timeLeft--;
