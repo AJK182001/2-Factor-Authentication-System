@@ -11,6 +11,7 @@ import random
 import time
 import string
 import bcrypt
+import hashlib
 app = Flask(__name__)
 CORS(app)
 
@@ -19,7 +20,7 @@ CORS(app)
 # Initialize Firebase Admin SDK for database operations
 # Set environment variable GOOGLE_APPLICATION_CREDENTIALS to your service account JSON path,
 # or place serviceAccount.json in project root and it will be used as fallback.
-cred_path = "C:\\Users\\anton\\OneDrive\\Desktop\\Crypto 2FA\\login\\2-Factor-Authentication-System\\service.json"
+cred_path = "D:\\MS\\FIT5163\\project\\2-Factor-Authentication-System\\service.json"
 if not firebase_admin._apps:
     cred = credentials.Certificate(cred_path)
     firebase_admin.initialize_app(cred)
@@ -170,7 +171,7 @@ def check_login():
         
         # Check if this is a regular user with valid password
         if bcrypt.checkpw(password, matched_user['password'].encode('utf-8')):
-            print("password verified")
+            
             # Regular user login successful - requires 2FA
             return jsonify({
                 "success": True,
@@ -220,9 +221,11 @@ def generate_otp():
         otp_code = generate_random_otp()
         
         # Create user-specific OTP by combining OTP with user email
-        user_specific_otp = f"{otp_code}:{user_email}"
-        hashed_otp = bcrypt.hashpw(user_specific_otp.encode('utf-8'), bcrypt.gensalt())
-        
+        user_specific_otp = f"{otp_code}:{user_email}".encode('utf-8')
+        sha_hash = hashlib.sha256(user_specific_otp).digest()
+        derived_otp = str(int.from_bytes(sha_hash[:4], "big") % 1000000).zfill(6)
+        hashed_otp = bcrypt.hashpw(derived_otp.encode(), bcrypt.gensalt())
+
         current_time = int(time.time() * 1000)
         expires_at = current_time + 30000  # 30 seconds validity
         user_ref = db.collection('users').document(user_id)
@@ -236,7 +239,7 @@ def generate_otp():
         return jsonify({
             'success': True,
             'sessionId': session_id,
-            'otp': otp_code  # Return plain OTP for user display
+            'otp': derived_otp  # Return plain OTP for user display
         }), 200
 
     except Exception as e:
@@ -277,21 +280,18 @@ def verify_otp():
             user_ref.update({
                 'otp_code': firestore.DELETE_FIELD,
                 'otp_createdAt': firestore.DELETE_FIELD,
-                'otp_expiresAt': firestore.DELETE_FIELD,
-                'session_id': firestore.DELETE_FIELD
+                'otp_expiresAt': firestore.DELETE_FIELD
             })
             return jsonify({'success': False, 'error': 'OTP expired'}), 400
         # Verify user-specific OTP by reconstructing the same combination
-        user_email = user_data.get('email', '')
-        user_specific_otp = f"{otp_code}:{user_email}"
         
-        if bcrypt.checkpw(user_specific_otp.encode('utf-8'), user_data["otp_code"].encode('utf-8')):
+        
+        if bcrypt.checkpw(otp_code.encode('utf-8'), user_data["otp_code"].encode('utf-8')):
             # Clear OTP after successful verification
             user_ref.update({
                 'otp_code': firestore.DELETE_FIELD,
                 'otp_createdAt': firestore.DELETE_FIELD,
-                'otp_expiresAt': firestore.DELETE_FIELD,
-                'session_id': firestore.DELETE_FIELD
+                'otp_expiresAt': firestore.DELETE_FIELD
             })
             return jsonify({'success': True, 'message': 'OTP verified successfully'}), 200
         else:
