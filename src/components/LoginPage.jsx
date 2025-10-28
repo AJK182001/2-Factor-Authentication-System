@@ -61,7 +61,6 @@ const LoginPage = () => {
       <h1 className="auth-title">Login</h1>
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label htmlFor="username" className="form-label">Username</label>
           <input
             type="text"
             id="username"
@@ -73,7 +72,6 @@ const LoginPage = () => {
         </div>
 
         <div className="form-group">
-          <label htmlFor="password" className="form-label">Password</label>
           <input
             type="password"
             id="password"

@@ -115,3 +115,22 @@ select {
   border: 1px solid #e1e8ed;
   font-family: inherit;
 }
+
+/* Button group for restart and logout */
+.button-group {
+  display: flex;
+  gap: 1rem;
+  margin-top: 5px;
+  justify-content: center;
+}
+
+/* Logout button - inherits btn-primary sizing, overrides color */
+.logout-btn {
+  background-color: #e74c3c !important;
+}
+
+.logout-btn:hover {
+  background-color: #c0392b !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+}

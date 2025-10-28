@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "./Game.css";
 import axios from "axios";
 
@@ -13,6 +14,7 @@ const getRandomPosition = () => ({
 });
 
 const Game = () => {
+  const navigate = useNavigate();
   const [snake, setSnake] = useState(INITIAL_SNAKE);
   const [direction, setDirection] = useState(INITIAL_DIRECTION);
   const [food, setFood] = useState(getRandomPosition());
@@ -91,6 +93,10 @@ const Game = () => {
     setGameOver(false);
   };
 
+  const handleLogout = () => {
+    navigate('/login');
+  };
+
 return(
   <div className="game-container">
   <div className="game-card">
@@ -121,7 +127,10 @@ return(
     </div>
 
     {/* Controls */}
-    <button className="btn-primary" onClick={restartGame}>Restart</button>
+    <div className="button-group">
+      <button className="btn-primary" onClick={restartGame}>Restart</button>
+      <button className="btn-primary logout-btn" onClick={handleLogout}>Logout</button>
+    </div>
     <div style={{ marginTop: '10px' }}>
       Speed: 
       <select value={speed} onChange={e => setSpeed(Number(e.target.value))}>
