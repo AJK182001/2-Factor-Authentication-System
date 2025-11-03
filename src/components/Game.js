@@ -48,31 +48,29 @@ const Game = () => {
    * Ends game if snake hits walls or itself
    */
   const moveSnake = () => {
-    const newHead = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
+  const newHead = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
 
-    // Check for collisions (walls or self)
-    if (
-      newHead.x < 0 || newHead.x >= BOARD_SIZE ||
-      newHead.y < 0 || newHead.y >= BOARD_SIZE ||
-      snake.some(seg => seg.x === newHead.x && seg.y === newHead.y)
-    ) {
-      setGameOver(true);
-      updateHighScore();
-      return;
-    }
+  if (
+    newHead.x < 0 || newHead.x >= BOARD_SIZE ||
+    newHead.y < 0 || newHead.y >= BOARD_SIZE ||
+    snake.some(seg => seg.x === newHead.x && seg.y === newHead.y)
+  ) {
+    setGameOver(true);
+    // send the final score after current score is updated
+    setTimeout(updateHighScore, 0);
+    return;
+  }
 
-    // Move snake by adding new head
-    const newSnake = [newHead, ...snake];
-    
-    // Check if food is consumed
-    if (newHead.x === food.x && newHead.y === food.y) {
-      setScore(prev => prev + 1);           // Increase score
-      setFood(getRandomPosition());         // Generate new food
-    } else {
-      newSnake.pop();                       // Remove tail if no food consumed
-    }
-    setSnake(newSnake);
-  };
+  const newSnake = [newHead, ...snake];
+  if (newHead.x === food.x && newHead.y === food.y) {
+    const newScore = score + 1;
+    setScore(newScore);
+    setFood(getRandomPosition());
+  } else {
+    newSnake.pop();
+  }
+  setSnake(newSnake);
+};
 
   /**
    * updateHighScore Function

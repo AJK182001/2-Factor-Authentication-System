@@ -28,7 +28,15 @@ if not firebase_admin._apps:
 # Initialize Firestore database connection
 db = firestore.client()
 users_col = db.collection("users")
-
+high_score = 0
+@app.route('/highscore', methods=['GET', 'POST'])
+def handle_highscore():
+    global high_score
+    if request.method == 'POST':
+        score = request.json.get('score', 0)
+        if score > high_score:
+            high_score = score
+    return jsonify({'high_score': high_score})
 
 
 # USER MANAGEMENT API ENDPOINTS
